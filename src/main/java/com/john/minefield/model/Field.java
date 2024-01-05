@@ -4,6 +4,7 @@ package main.java.com.john.minefield.model;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 public class Field {
     private final int row;
@@ -14,9 +15,21 @@ public class Field {
     private boolean marked;
 
     private List<Field> neighbors = new ArrayList<>();
+    private List<FieldObserver> observers = new ArrayList<>();
+    //private List<BiConsumer<Field, FieldEvent>> observersList = new ArrayList<>();
+
     Field(int row, int column){
         this.row = row;
         this.column = column;
+    }
+
+    public void registerObserver(FieldObserver observer){ // Chamar sempre que for notificar que aconteceu um evento
+        observers.add(observer);
+    }
+
+    private void notifyObservers(FieldEvent event){
+        observers.stream()
+                .forEach(o -> o.eventOccurred(this, event));
     }
 
     boolean addNeighbors(Field neighbor){
@@ -42,6 +55,11 @@ public class Field {
     void changeTag(){
         if(!isOpen){
             marked = !marked;
+            if(marked){
+                notifyObservers(FieldEvent.MARK);
+            } else{
+                notifyObservers(FieldEvent.UNMARK);
+            }
         }
     }
 
@@ -51,7 +69,10 @@ public class Field {
 
             if(undermined){
                 // TODO to implement new version
+                notifyObservers(FieldEvent.EXPLOSION);
+                return true;
             }
+            setOpen(true);
             if(securityNeighbor()){
                 neighbors.forEach(Field::open);
             }
@@ -78,6 +99,9 @@ public class Field {
 
     public void setOpen(boolean open) {
         this.isOpen = open;
+        if(open){
+            notifyObservers(FieldEvent.OPEN);
+        }
     }
 
     public boolean isOpen(){
