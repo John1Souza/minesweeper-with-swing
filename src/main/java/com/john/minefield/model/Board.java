@@ -3,14 +3,17 @@ package main.java.com.john.minefield.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public class Board {
+public class Board implements FieldObserver {
     private int rows;
     private int columns;
     private int mines;
 
     private final List<Field> fields = new ArrayList<>();
+    private final List<Consumer<Boolean>> observers =
+            new ArrayList<>();
 
     public Board(int rows, int columns, int mines) {
         this.rows = rows;
@@ -22,10 +25,21 @@ public class Board {
         sortMines();
     }
 
+    public void registerObserver(Consumer<Boolean> observer){
+        observers.add(observer);
+    }
+
+    private void notifyObservers(boolean result){
+        observers.stream()
+                .forEach(o -> o.accept(result));
+    }
+
     private void generateFields() {
         for (int row = 0; row < rows; row++) {
             for (int column = 0; column < columns; column++) {
-                fields.add(new Field(row, column));
+                Field field = new Field(row, column);
+                field.registerObserver(this);
+                fields.add(field);
             }
         }
     }
@@ -81,7 +95,19 @@ public class Board {
         fields.forEach(Field::restart);
         sortMines();
     }
-//
+
+    @Override
+    public void eventOccurred(Field field, FieldEvent event) {
+        if(event == FieldEvent.EXPLOSION){
+            System.out.println("You Lose! ... :(");
+            notifyObservers(false);
+        }else if(reachedGoal()){
+            System.out.println("You Win! ... :)");
+            notifyObservers(true);
+        }
+    }
+
+    //
 //    public String toString(){
 //        StringBuilder sb = new StringBuilder();
 //
