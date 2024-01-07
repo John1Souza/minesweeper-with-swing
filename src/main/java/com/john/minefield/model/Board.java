@@ -12,7 +12,7 @@ public class Board implements FieldObserver {
     private int mines;
 
     private final List<Field> fields = new ArrayList<>();
-    private final List<Consumer<Boolean>> observers =
+    private final List<Consumer<EventResult>> observers =
             new ArrayList<>();
 
     public Board(int rows, int columns, int mines) {
@@ -25,13 +25,13 @@ public class Board implements FieldObserver {
         sortMines();
     }
 
-    public void registerObserver(Consumer<Boolean> observer){
+    public void registerObserver(Consumer<EventResult> observer){
         observers.add(observer);
     }
 
     private void notifyObservers(boolean result){
         observers.stream()
-                .forEach(o -> o.accept(result));
+                .forEach(o -> o.accept(new EventResult(result)));
     }
 
     private void generateFields() {
@@ -45,17 +45,14 @@ public class Board implements FieldObserver {
     }
 
     public void open(int row, int column){
-        try{
-            fields.parallelStream()
-                    .filter(f -> f.getRow() == row && f.getColumn() == column)
-                    .findFirst()
-                    .ifPresent(f -> f.open());
-        } catch (Exception e){
-            // FIXME adjust implementation of the method open
-            fields.forEach(c -> c.setOpen(true));
-            throw e;
-        }
+
+        fields.parallelStream()
+                .filter(f -> f.getRow() == row && f.getColumn() == column)
+                .findFirst()
+                .ifPresent(f -> f.open());
     }
+
+
 
     public void changeTag(int row, int column){
         fields.parallelStream()
@@ -99,29 +96,17 @@ public class Board implements FieldObserver {
     @Override
     public void eventOccurred(Field field, FieldEvent event) {
         if(event == FieldEvent.EXPLOSION){
-            System.out.println("You Lose! ... :(");
+            showMines();
             notifyObservers(false);
         }else if(reachedGoal()){
-            System.out.println("You Win! ... :)");
             notifyObservers(true);
         }
     }
 
-    //
-//    public String toString(){
-//        StringBuilder sb = new StringBuilder();
-//
-//        int i = 0;
-//        for (int row = 0; row < rows; row++) {
-//
-//            for (int column = 0; column < columns; column++) {
-//                sb.append(" ");
-//                sb.append(fields.get(i));
-//                sb.append(" ");
-//                i++;
-//            }
-//            sb.append("\n");
-//        }
-//        return sb.toString();
-//    }
+    private void showMines(){
+        fields.stream()
+                .filter(c -> c.isMined())
+                .forEach(c -> c.setOpen(true));
+    }
+
 }
