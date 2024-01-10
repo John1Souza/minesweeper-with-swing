@@ -52,7 +52,7 @@ public class Field {
         }
     }
 
-    void changeTag(){
+    public void changeTag(){
         if(!isOpen){
             marked = !marked;
             if(marked){
@@ -63,7 +63,7 @@ public class Field {
         }
     }
 
-    boolean open(){
+    public boolean open(){
         if(!isOpen && !marked){
             isOpen = true;
 
@@ -83,7 +83,7 @@ public class Field {
         }
     }
 
-    boolean securityNeighbor(){
+    public boolean securityNeighbor(){
         return neighbors.stream().noneMatch(v -> v.undermined);
     }
 
@@ -126,8 +126,8 @@ public class Field {
     }
 
 
-    long minesOnNeighbor(){
-        return neighbors.stream().filter(v -> v.undermined).count();
+    public int minesOnNeighbor(){
+        return (int)neighbors.stream().filter(v -> v.undermined).count();
     }
 
     void restart(){
