@@ -134,6 +134,7 @@ public class Field {
         isOpen = false;
         undermined = false;
         marked = false;
+        notifyObservers(FieldEvent.RESTART);
     }
 
 //    public String toString(){

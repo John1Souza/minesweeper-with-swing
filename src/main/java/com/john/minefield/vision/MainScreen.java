@@ -7,7 +7,7 @@ import java.awt.*;
 
 public class MainScreen extends JFrame {
     public MainScreen() {
-        Board board = new Board(16, 30, 50);
+        Board board = new Board(16, 30, 5);
         BoardScreen boardScreen = new BoardScreen(board);
         add(boardScreen);
         setTitle("MineSweeper");
